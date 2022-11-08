@@ -1,0 +1,14 @@
+language: python
+python:
+  - "3.9"
+
+services:
+  - redis-server
+
+script:
+  - python3 setup.py install
+  - cd tests
+  - python3 test_database.py
+  - python3 test_spiders.py
+  - python3 test_counter.py
+
