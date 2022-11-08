@@ -1,0 +1,1 @@
+This repository was forked from [liuslnlp/ProxyPool](https://github.com/liuslnlp/ProxyPool) Maybe because of the age or something else, this code didn't work on my computer, so i rewrote it and added some useful futures.
