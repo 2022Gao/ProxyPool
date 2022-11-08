@@ -1,10 +1,11 @@
 from concurrent import futures
-from proxypool.database import RedisOperator
-from proxypool.scheduler.filter import ProxyFilter
-from proxypool.errors import ResourceDepletionError
-from proxypool.spiders import SpiderMeta
-from proxypool.conf import POOL_UPPER_THRESHOLD
+
 from counter import KeyCounter
+from proxypool.conf import POOL_UPPER_THRESHOLD
+from proxypool.database import RedisOperator
+from proxypool.errors import ResourceDepletionError
+from proxypool.scheduler.filter import ProxyFilter
+from proxypool.spiders import SpiderMeta
 from tools import Tool
 
 
@@ -51,15 +52,12 @@ class PoolAdder:
                 for future in futures.as_completed(future_to_down):
                     raw_proxies.extend(future.result())
 
-            '''raw_proxies = [{'KuaiDaiLi': {'http': 'http://342.343.23:2009'}},
-                 {'IP66': {'http': 'http://342.343.23:2009'}},
-                 {'KuaiDaiLi': {'http': 'http://342.343.23:2009'}}]'''
-
             self._counter.set_before_number(raw_proxies)
+
             self._tester.set_raw_proxies(raw_proxies)
             self._tester.filter()
-
             proxies = self._tester.usable_proxies
+
             self._counter.set_after_number(proxies)
             self._counter.report()
             if len(proxies) != 0:
