@@ -24,6 +24,4 @@ def get_page(url: str):
 
 
 if __name__ == '__main__':
-    u = 'https://www.baidu.com'
-    h = get_page(url=u)
-    print(type(h))
+    pass

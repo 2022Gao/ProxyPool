@@ -174,8 +174,4 @@ class FateZero(metaclass=SpiderMeta):
 
 
 if __name__ == '__main__':
-    k = KuaiDaiLi()
-    p = k.get()
-
-    print(p)
-    print(len(p))
+    pass

@@ -62,12 +62,4 @@ class KeyCounter:
 
 
 if __name__ == '__main__':
-    a = [{'KuaiDaiLi': {'http': 'http://342.343.23:2009'}},
-         {'IP66': {'http': 'http://342.343.23:2009'}},
-         {'KuaiDaiLi': {'http': 'http://342.343.23:2009'}}]
-    b = [{'KuaiDaiLi': {'http': 'http://342.343.23:2009'}},
-         {'KuaiDaiLi': {'http': 'http://342.343.23:2009'}}]
-
-    c = KeyCounter()
-    c.set_before_number(a)
-    c.set_after_number(b)
+    pass
