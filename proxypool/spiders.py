@@ -1,3 +1,4 @@
+import re
 import time
 
 import requests
@@ -31,6 +32,30 @@ class SpiderMeta(type):
         """
         cls._counter = 1
 
+    def _construct_metadata(cls, protocol, ip, port):
+        spider_name = cls.__class__.__name__
+
+        if protocol:
+            if protocol.lower() in ['http', 'https', 'socks4', 'socks5']:
+                protocol = protocol.lower()
+            else:
+                protocol = 'http'
+
+        ip_port = (ip + ':' + str(port)).replace(' ', '')
+        try:
+            ip_temp = re.search(r'(\d*\.\d*\.\d*\.\d*):', ip_port).group(1)
+            port_temp = re.search(r':(\d*)', ip_port).group(1)
+        except Exception:
+            pass
+        else:
+            ip_port = ip_temp + ':' + port_temp
+
+            metadata = {
+                spider_name: {protocol: protocol + '://' + ip_port}
+            }
+
+            return metadata
+
     def __new__(mcs, *args: tuple, **kwargs: dict):
         """
         :param args: args[0]=new spider name; args[1]=metaclass name; args[2]=new spider's functions
@@ -46,6 +71,7 @@ class SpiderMeta(type):
         args[2]['__init__'] = lambda self: SpiderMeta._init(self)
         args[2]['increment'] = lambda self, count: SpiderMeta._increment(self, count)
         args[2]['flush'] = lambda self: SpiderMeta._flush(self)
+        args[2]['metadata'] = lambda self, protocol, ip, port: SpiderMeta._construct_metadata(self, protocol, ip, port)
 
         # put new spider class in 'spiders' list
         SpiderMeta.spiders.append(type.__new__(mcs, *args, **kwargs))
@@ -68,15 +94,17 @@ class KuaiDaiLi(metaclass=SpiderMeta):
             time.sleep(1)
 
             temp = []
-            for item in html('table tr').items():
-                host = item('td[data-title="IP"]').text()
-                port = item('td[data-title="PORT"]').text()
-                protocol = item('td[data-title="类型"]').text().lower()
-                if host and port and protocol:
-                    proxy = {protocol: protocol + '://' + host + ':' + port}
-                    metadata = {'KuaiDaiLi': proxy}
+            try:
+                for item in html('table tr').items():
+                    ip = item('td[data-title="IP"]').text()
+                    port = item('td[data-title="PORT"]').text()
+                    protocol = item('td[data-title="类型"]').text().lower()
+                    metadata = self.metadata(protocol, ip, port)
                     temp.append(metadata)
-            proxies.extend(temp)
+                proxies.extend(temp)
+
+            except Exception:
+                pass
 
         return proxies
 
@@ -100,10 +128,8 @@ class Ip66(metaclass=SpiderMeta):
                 host = tr('td:nth-child(1)').text()
                 port = tr('td:nth-child(2)').text()
                 protocol = 'http'
-                if host and port and protocol:
-                    proxy = {protocol: protocol + '://' + host + ':' + port}
-                    metadata = {'Ip66': proxy}
-                    temp.append(metadata)
+                metadata = self.metadata(protocol, host, port)
+                temp.append(metadata)
 
             proxies.extend(temp)
 
@@ -114,22 +140,16 @@ class PzzQz(metaclass=SpiderMeta):
     index_url = 'https://pzzqz.com/'
 
     def get(self, page_increments=None):
-
         html = get_page(url=self.index_url)
         trs = html('table tr:gt(0)').items()
         proxies = []
         for tr in trs:
-            host = tr('td:nth-child(1)').text()
+            ip = tr('td:nth-child(1)').text()
             port = tr('td:nth-child(2)').text()
             protocol = tr('td:nth-child(5)').text().lower()
-            if host and port and protocol:
-                if protocol in ['socks4', 'socks5']:
-                    proxy = {'http': protocol + '://' + host + ':' + port,
-                             'https': protocol + '://' + host + ':' + port}
-                else:
-                    proxy = {protocol: protocol + '://' + host + ':' + port}
-                metadata = {'PzzQz': proxy}
-                proxies.append(metadata)
+
+            metadata = self.metadata(protocol, ip, port)
+            proxies.append(metadata)
 
         return proxies
 
@@ -158,20 +178,16 @@ class FateZero(metaclass=SpiderMeta):
                 except Exception:
                     pass
                 else:
-                    host = dict_item['host']
+                    ip = dict_item['host']
                     port = str(dict_item['port'])
                     protocol = dict_item['type']
-                    if host and port and protocol:
-                        if protocol in ['socks4', 'socks5']:
-                            proxy = {'http': protocol + '://' + host + ':' + port,
-                                     'https': protocol + '://' + host + ':' + port}
-                        else:
-                            proxy = {protocol: protocol + '://' + host + ':' + port}
-                        metadata = {'FateZero': proxy}
-                        proxies.append(metadata)
+                    metadata = self.metadata(protocol, ip, port)
+                    proxies.append(metadata)
 
             return proxies
 
 
 if __name__ == '__main__':
-    pass
+    a = KuaiDaiLi()
+    b = a.get()
+    print(b)
